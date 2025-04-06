@@ -8,3 +8,11 @@ export const saveJsonToFile = async (filePath: string, data: object): Promise<vo
 		console.error(error);
 	}
 };
+
+export const saveToFile = async (filePath: string, data: string): Promise<void> => {
+	try {
+		await fs.promises.writeFile(filePath, data, 'utf-8');
+	} catch (error) {
+		console.error(error);
+	}
+};

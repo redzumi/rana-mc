@@ -4,3 +4,5 @@ dist
 .env
 .cache
 mods.json
+mods_*.json
+mods-urls.txt

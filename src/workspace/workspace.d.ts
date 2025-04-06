@@ -1,3 +1,5 @@
+import { ProjectHit, ProjectResponse } from "../modrinth/modrinth.d";
+
 export type Author = string | {
 	name: string;
 	contact: {
@@ -47,4 +49,10 @@ export interface ModMetadata {
 
 export interface ModData extends ModFileInfo {
 	metadata: ModMetadata;
+}
+
+export interface EnrichedModData extends ModData {
+	modrinthProject: ProjectResponse | ProjectHit | null;
+	latestVersion: string | null;
+	gameVersions: string[];
 }

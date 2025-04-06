@@ -12,4 +12,8 @@ export class ModrinthUtils {
 
 		return `[${encoded.join(',')}]`;
 	};
+
+	public static getModUrl = (slugOrId: string): string => {
+		return `https://modrinth.com/mod/${slugOrId}`;
+	}
 }
