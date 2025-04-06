@@ -42,7 +42,7 @@ export default defineConfig([
       'max-len': ['error', { code: 120 }],
       'padding-line-between-statements': [
         'error',
-        { blankLine: 'off', prev: ['const', 'let', 'var'], next: '*' },
+        // { blankLine: 'never', prev: ['const', 'let', 'var'], next: '*' },
         { blankLine: 'always', prev: 'directive', next: '*' },
         { blankLine: 'always', prev: '*', next: 'return' },
       ],
