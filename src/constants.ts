@@ -1,0 +1,1 @@
+export const MODS_FILENAME = 'mods.json';

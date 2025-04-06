@@ -1,5 +1,6 @@
 
 
+import { MODS_FILENAME } from './constants';
 import { saveJsonToFile } from './helpers';
 import { Facets, Modrinth, ModrinthUtils } from './modrinth';
 import { Paths } from './paths';
@@ -31,7 +32,7 @@ class ModrinthFetcher {
 
 			const modSearchHits = await this.modrinth.search(name, facets);
 
-			if (modSearchHits.length === 0) {
+			if (modSearchHits === null || modSearchHits.hits.length === 0) {
 				return { ...mod, modrinthProject: null, latestVersion: null };
 			}
 
@@ -51,7 +52,7 @@ class ModProcessor {
 		const enrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
 
 		console.log(enrichedMods);
-		saveJsonToFile('fabricModsData.json', enrichedMods);
+		saveJsonToFile(MODS_FILENAME, enrichedMods);
 
 		const successful = enrichedMods.filter(m => m.modrinthProject !== null);
 		console.log(`Done ${successful.length} mods of ${mods.length}`);
