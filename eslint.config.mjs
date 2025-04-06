@@ -38,6 +38,19 @@ export default defineConfig([
       'import/no-duplicates': 'error',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+
+      'max-len': ['error', { code: 120 }],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'off', prev: ['const', 'let', 'var'], next: '*' },
+        { blankLine: 'always', prev: 'directive', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'return' },
+      ],
+      'space-infix-ops': ['error', { int32Hint: false }],
+      'keyword-spacing': ['error', { before: true, after: true }],
+      'no-magic-numbers': ['warn', { ignore: [0, 1, -1] }],
+      'no-multi-spaces': 'error',
+      'no-trailing-spaces': 'error',
     },
     settings: {
       'import/resolver': {
