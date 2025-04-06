@@ -39,7 +39,7 @@ export default defineConfig([
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
 
-      'max-len': ['error', { code: 120 }],
+      'max-len': ['error', { code: 100 }],
       'padding-line-between-statements': [
         'error',
         // { blankLine: 'never', prev: ['const', 'let', 'var'], next: '*' },

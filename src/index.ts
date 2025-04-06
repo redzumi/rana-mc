@@ -1,7 +1,7 @@
 
 import * as path from 'path';
 
-import { readFilesInMinecraftFolder } from './utils';
+import { readFilesInMinecraftFolder, readManifestFromJar } from './utils';
 
 // TODO: Replace by choosing from ui?
 const multiMCVersion = '1.20.4';
@@ -13,6 +13,9 @@ const modsPath = path.join(usingMultiMC ? multiMCPath : minecraftPath, 'mods');
 const main = async () => {
   const files = await readFilesInMinecraftFolder(modsPath);
   console.log(files);
+
+	const manifest = await readManifestFromJar(files[0].path);
+	console.log(manifest);
 };
 
 main();
