@@ -54,7 +54,15 @@ class ModProcessor {
 		console.log(enrichedMods);
 		saveJsonToFile(MODS_FILENAME, enrichedMods);
 
-		const successful = enrichedMods.filter(m => m.modrinthProject !== null);
+		const successful = enrichedMods.filter(m => {
+			const hasProject = m.modrinthProject !== null;
+
+			if (!hasProject) {
+				console.log(`Mod ${JSON.stringify(m.metadata.fabric)} is not found in modrinth`);
+			}
+
+			return hasProject;
+		});
 		console.log(`Done ${successful.length} mods of ${mods.length}`);
 	}
 }
