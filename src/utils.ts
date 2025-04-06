@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import * as JSZip from 'jszip';
+import * as path from 'path';
 
 export const readFilesInMinecraftFolder = async (folderPath: string): Promise<{ path: string, filename: string }[]> => {
 	try {
@@ -23,15 +23,46 @@ const manifestFilename = 'META-INF/MANIFEST.MF';
 const fabricModFilename = 'fabric.mod.json';
 const quitModFilename = 'quit.mod.json';
 
-const parseJson = (content: string | null): any | null => {
+const parseJson = (content: string | null): object | null => {
 	try {
 		return content ? JSON.parse(content) : null;
 	} catch (e) {
-		return null;  // Возвращаем null в случае ошибки парсинга
+		console.error(e);
+
+		return null;
 	}
 };
 
-export const readManifestFromJar = (jarFilePath: string): Promise<{ manifest: string | null, fabricMod: any | null, quitMod: any | null }> => {
+interface FabricModInfo {
+	schemaVersion: number;
+	id: string;
+	version: string;
+	name: string;
+	description: string;
+	authors: string[] | {
+		name: string,
+		contact: { homepage: string }
+	}[];
+	contact: {
+		homepage: string;
+		sources: string;
+	};
+	license: string;
+	icon: string;
+	environment: string;
+	entrypoints: {
+		main: string[];
+	};
+	mixins: string[];
+	depends: {
+		fabric: string;
+		minecraft: string;
+		architectury: string;
+	};
+	accessWidener: string;
+}
+
+export const readManifestFromJar = (jarFilePath: string): Promise<{ manifest: string | null, fabricMod: FabricModInfo | null, quitMod: object | null }> => {
 	return fs.promises.readFile(jarFilePath)
 		.then(data => JSZip.loadAsync(data))
 		.then(zip => Promise.all([
@@ -39,6 +70,6 @@ export const readManifestFromJar = (jarFilePath: string): Promise<{ manifest: st
 			zip.file(fabricModFilename)?.async('string').then(parseJson) || null,
 			zip.file(quitModFilename)?.async('string').then(parseJson) || null,
 		]))
-		.then(([manifest, fabricMod, quitMod]) => ({ manifest, fabricMod, quitMod }))
+		.then(([manifest, fabricMod, quitMod]) => ({ manifest, fabricMod: fabricMod as FabricModInfo, quitMod }))
 		.catch(() => ({ manifest: null, fabricMod: null, quitMod: null }));
 };
