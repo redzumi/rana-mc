@@ -1,6 +1,8 @@
 import { API_HOST } from "./constants";
 import { ProjectResponse, SearchResponse } from "./modrinth.d";
 
+const DEBUG = false;
+
 export class Modrinth {
 	private readonly baseUrl = `https://${API_HOST}/v2`;
 
@@ -8,8 +10,13 @@ export class Modrinth {
 		try {
 			const response = await fetch(this.getProjectUrl(slugOrId));
 
-			if (!response.ok)
-				throw new Error(`Failed to fetch modrinth project: ${slugOrId}`);
+			if (!response.ok) {
+				if (DEBUG)
+					console.error(`Failed to fetch modrinth project: ${slugOrId}`);
+
+				return null;
+			}
+
 
 			return await response.json();
 		} catch (err: unknown) {
@@ -23,8 +30,12 @@ export class Modrinth {
 		try {
 			const response = await fetch(this.getSearchUrl(query, facets));
 
-			if (!response.ok)
-				throw new Error(`Failed to fetch modrinth search: ${query}`);
+			if (!response.ok) {
+				if (DEBUG)
+					console.error(`Failed to fetch modrinth search: ${query}`);
+
+				return null;
+			}
 
 			return await response.json();
 		} catch (err: unknown) {

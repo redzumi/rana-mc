@@ -1,17 +1,17 @@
+export type Author = string | {
+	name: string;
+	contact: {
+		homepage: string;
+	};
+}
+
 interface FabricModMetadata {
 	schemaVersion: number;
 	id: string;
 	version: string;
 	name: string;
 	description: string;
-	authors:
-	| string[]
-	| {
-		name: string;
-		contact: {
-			homepage: string;
-		};
-	}[];
+	authors: Author[];
 	contact: {
 		homepage: string;
 		sources: string;

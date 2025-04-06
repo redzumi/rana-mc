@@ -4,7 +4,7 @@ import { MODS_FILENAME } from './constants';
 import { saveJsonToFile } from './helpers';
 import { Facets, Modrinth, ModrinthUtils } from './modrinth';
 import { Paths } from './paths';
-import { MIN_DOWNLOADS } from './workspace/constants';
+import { WorkspaceUtils } from './workspace';
 import { ModScanner } from './workspace/scanner';
 import { ModData } from './workspace/workspace.d';
 
@@ -17,17 +17,22 @@ class ModrinthFetcher {
 				return { ...mod, modrinthProject: null, latestVersion: null };
 			}
 
-			const id = mod.metadata.fabric?.id;
+			const fabricMeta = mod.metadata.fabric;
+
+			const id = fabricMeta?.id;
 			const modProject = await this.modrinth.getProject(id);
 
 			if (modProject) {
 				return { ...mod, modrinthProject: modProject, latestVersion: null };
 			}
 
-			const name = mod.metadata.fabric?.name;
+			const name = fabricMeta?.name;
+			const author = WorkspaceUtils.getAuthor(fabricMeta.authors);
+
 			const facets = ModrinthUtils.getSearchFacets([
-				[Facets.equals('author', 'geometrically')],
-				[Facets.gte('downloads', MIN_DOWNLOADS)]
+				[Facets.equals('author', author)],
+				// FYI: Maybe later
+				// [Facets.gte('downloads', MIN_DOWNLOADS)]
 			]);
 
 			const modSearchHits = await this.modrinth.search(name, facets);
@@ -51,14 +56,17 @@ class ModProcessor {
 		const modrinthFetcher = new ModrinthFetcher();
 		const enrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
 
-		console.log(enrichedMods);
 		saveJsonToFile(MODS_FILENAME, enrichedMods);
 
 		const successful = enrichedMods.filter(m => {
 			const hasProject = m.modrinthProject !== null;
 
 			if (!hasProject) {
-				console.log(`Mod ${JSON.stringify(m.metadata.fabric)} is not found in modrinth`);
+				const fabricMeta = m.metadata.fabric;
+				console.log(`Mod ${fabricMeta?.name} is not found in modrinth: ${JSON.stringify({
+					author: fabricMeta?.authors,
+					id: fabricMeta?.id,
+				})}`);
 			}
 
 			return hasProject;
