@@ -23,7 +23,11 @@ class ModrinthFetcher {
 			const modProject = await this.modrinth.getProject(id);
 
 			if (modProject) {
-				return { ...mod, modrinthProject: modProject, latestVersion: null };
+				return {
+					...mod,
+					modrinthProject: modProject,
+					latestVersion: this.getLatestVersion(modProject.versions)
+				};
 			}
 
 			const name = fabricMeta?.name;
@@ -38,13 +42,25 @@ class ModrinthFetcher {
 			const modSearchHits = await this.modrinth.search(name, facets);
 
 			if (modSearchHits === null || modSearchHits.hits.length === 0) {
-				return { ...mod, modrinthProject: null, latestVersion: null };
+				return {
+					...mod,
+					modrinthProject: null,
+					latestVersion: null
+				};
 			}
 
 			const modHit = modSearchHits[0];
 
-			return { ...mod, modrinthProject: modHit, latestVersion: null };
+			return {
+				...mod,
+				modrinthProject: modHit,
+				latestVersion: this.getLatestVersion(modHit.versions)
+			};
 		}));
+	}
+
+	private getLatestVersion(versions: string[]) {
+		return versions[versions.length - 1];
 	}
 }
 
