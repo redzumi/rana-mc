@@ -1,78 +1,61 @@
 
-import * as path from 'path';
 
 import { saveJsonToFile } from './helpers';
-import { getProjectUrl, ModProjectResponse } from './modrinth';
-import { readFilesInMinecraftFolder, readManifestFromJar } from './utils';
+import { Facets, Modrinth, ModrinthUtils } from './modrinth';
+import { Paths } from './paths';
+import { MIN_DOWNLOADS } from './workspace/constants';
+import { ModScanner } from './workspace/scanner';
+import { ModData } from './workspace/workspace.d';
 
-// TODO: Replace by choosing from ui?
-const multiMCVersion = '1.20.4';
-const multiMCPath = path.join('C:', 'Games', 'MultiMC', 'instances', multiMCVersion, '.minecraft');
-const minecraftPath = path.join(process.env.APPDATA || '', '.minecraft');
-const usingMultiMC = true;
-const modsPath = path.join(usingMultiMC ? multiMCPath : minecraftPath, 'mods');
+class ModrinthFetcher {
+	private modrinth = new Modrinth();
 
-const main = async () => {
-	const files = await readFilesInMinecraftFolder(modsPath);
+	public async enrichWithModrinthData(mods: ModData[]) {
+		return Promise.all(mods.map(async (mod) => {
+			if (!mod.metadata || !mod.metadata.fabric) {
+				return { ...mod, modrinthProject: null, latestVersion: null };
+			}
 
-	// TODO: Maybe and other, not only fabric mods
-	const fabricMods = await Promise.all(files.map(async (file) => ({
-		...file,
-		meta: (await readManifestFromJar(file.path)).fabricMod
-	})));
+			const id = mod.metadata.fabric?.id;
+			const modProject = await this.modrinth.getProject(id);
 
-	const fabricModsData = await Promise.all(fabricMods.map(async (fabricMod) => {
-		if (fabricMod.meta) console.log(fabricMod.meta.name);
+			if (modProject) {
+				return { ...mod, modrinthProject: modProject, latestVersion: null };
+			}
 
-		if (!fabricMod.meta) return {
-			...fabricMod,
-			modrinthProject: null,
-			latestVersion: null
-		};
+			const name = mod.metadata.fabric?.name;
+			const facets = ModrinthUtils.getSearchFacets([
+				[Facets.equals('author', 'geometrically')],
+				[Facets.gte('downloads', MIN_DOWNLOADS)]
+			]);
 
-		const id = fabricMod.meta.id;
-		const projectUrl = getProjectUrl(id);
+			const modSearchHits = await this.modrinth.search(name, facets);
 
-		const modrinthProjectData = await fetch(projectUrl);
+			if (modSearchHits.length === 0) {
+				return { ...mod, modrinthProject: null, latestVersion: null };
+			}
 
-		if (!modrinthProjectData.ok) {
-			console.error('No modrinth project data:', id);
-			console.error(projectUrl);
+			const modHit = modSearchHits[0];
 
-			return {
-				...fabricMod,
-				modrinthProject: null,
-				latestVersion: null
-			};
-		}
+			return { ...mod, modrinthProject: modHit, latestVersion: null };
+		}));
+	}
+}
 
-		const modrinthProject = (await modrinthProjectData.json()) as ModProjectResponse;
+class ModProcessor {
+	public static async run() {
+		const modsPath = Paths.getModsPath();
+		const mods = await ModScanner.getMods(modsPath);
 
-		if (!modrinthProjectData) {
-			console.error('No modrinth project data:', id);
-			console.error(projectUrl);
+		const modrinthFetcher = new ModrinthFetcher();
+		const enrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
 
-			return {
-				...fabricMod,
-				modrinthProject: null,
-				latestVersion: null
-			};
-		}
+		console.log(enrichedMods);
+		saveJsonToFile('fabricModsData.json', enrichedMods);
 
-		const latestVersion = modrinthProject.versions[modrinthProject.versions.length - 1];
+		const successful = enrichedMods.filter(m => m.modrinthProject !== null);
+		console.log(`Done ${successful.length} mods of ${mods.length}`);
+	}
+}
 
-		return {
-			...fabricMod,
-			modrinthProject,
-			latestVersion
-		}
-	}));
-
-	console.log(fabricModsData);
-	saveJsonToFile('fabricModsData.json', fabricModsData);
-
-	const modsWithData = fabricModsData.filter((fabricMod) => fabricMod.modrinthProject !== null);
-	console.log(`Done ${modsWithData.length} mods of ${fabricMods.length}`);
-};
-
-main();
+ModProcessor.run();
