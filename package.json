@@ -1,0 +1,41 @@
+{
+  "name": "rana-mc",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "tsup --watch --onSuccess \"dotenv node dist/index.js\"",
+    "build": "dotenv tsup",
+    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
+    "lint:fix": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
+    "typecheck": "tsc",
+    "release": "dotenv release-it --"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@eslint/compat": "^1.2.8",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.24.0",
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "auto-changelog": "^2.5.0",
+    "dotenv-cli": "^8.0.0",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-import-resolver-typescript": "^4.3.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "release-it": "^18.1.2",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  },
+  "tsup": {
+    "entry": [
+      "src/*"
+    ]
+  }
+}
