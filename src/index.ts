@@ -1,7 +1,8 @@
+import { config } from 'dotenv';
 
-
-import { LATEST_VERSIONS, MODS_FILENAME, MODS_URLS_FILENAME } from './constants';
-import { saveJsonToFile, saveToFile } from './helpers';
+import { LATEST_VERSIONS, MODS_URLS_FILENAME } from './constants';
+import { Curseforge, LatestFile } from './curseforge';
+import { saveToFile } from './helpers';
 import { Facets, Modrinth, ModrinthUtils } from './modrinth';
 import { ProjectHit } from './modrinth/modrinth.d';
 import { Paths } from './paths';
@@ -9,25 +10,31 @@ import { WorkspaceUtils } from './workspace';
 import { ModScanner } from './workspace/scanner';
 import { EnrichedModData, ModData } from './workspace/workspace.d';
 
+config();
+
 class ModrinthFetcher {
 	private modrinth = new Modrinth();
 
-	public async enrichWithModrinthData(mods: ModData[]): Promise<EnrichedModData[]> {
+	public async enrichWithModrinthData(mods: ModData[]):
+		Promise<Omit<EnrichedModData, 'curseforgeProject'>[]> {
 		return Promise.all(mods.map(async (mod) => {
 			if (!mod.metadata || !mod.metadata.fabric) {
-				return { ...mod, modrinthProject: null, latestVersion: null, gameVersions: [] };
+				return {
+					...mod,
+					modrinthProject: null,
+					gameVersions: []
+				};
 			}
 
 			const fabricMeta = mod.metadata.fabric;
-
 			const id = fabricMeta?.id;
+
 			const modProject = await this.modrinth.getProject(id);
 
 			if (modProject) {
 				return {
 					...mod,
 					modrinthProject: modProject,
-					latestVersion: this.getLatestGameVersion(modProject.game_versions),
 					gameVersions: modProject.game_versions
 				};
 			}
@@ -37,8 +44,6 @@ class ModrinthFetcher {
 
 			const facets = ModrinthUtils.getSearchFacets([
 				[Facets.equals('author', author)],
-				// FYI: Maybe later
-				// [Facets.gte('downloads', MIN_DOWNLOADS)]
 			]);
 
 			const modSearchHits = await this.modrinth.search(name, facets);
@@ -47,7 +52,6 @@ class ModrinthFetcher {
 				return {
 					...mod,
 					modrinthProject: null,
-					latestVersion: null,
 					gameVersions: []
 				};
 			}
@@ -57,14 +61,57 @@ class ModrinthFetcher {
 			return {
 				...mod,
 				modrinthProject: modHit,
-				latestVersion: modHit ? this.getLatestGameVersion(modHit.versions) : null,
 				gameVersions: modHit ? modHit.versions : []
 			};
 		}));
 	}
+}
 
-	private getLatestGameVersion(versions: string[]) {
-		return versions[versions.length - 1];
+class CurseforgeFetcher {
+	private curseforge: Curseforge;
+
+	constructor(apiKey: string) {
+		this.curseforge = new Curseforge(apiKey);
+	}
+
+	public async enrichWithCurseforgeData(mods: ModData[]):
+		Promise<Omit<EnrichedModData, 'modrinthProject'>[]> {
+		return Promise.all(mods.map(async (mod) => {
+			if (!mod.metadata || !mod.metadata.fabric) {
+				return {
+					...mod,
+					curseforgeProject: null,
+					gameVersions: []
+				};
+			}
+
+			const fabricMeta = mod.metadata.fabric;
+			const name = fabricMeta?.name;
+
+			const searchResponse = await this.curseforge.search(name);
+			if (!searchResponse || searchResponse.data.length === 0) {
+				return {
+					...mod,
+					curseforgeProject: null,
+					gameVersions: []
+				};
+			}
+
+			const modProject = searchResponse.data[0];
+
+			return {
+				...mod,
+				curseforgeProject: modProject,
+				gameVersions: this.getGameVersions(modProject.latestFiles)
+			};
+		}));
+	}
+
+	private getGameVersions(mod: LatestFile[]) {
+		return mod
+			.map(f => f.sortableGameVersions.map(v => v.gameVersion))
+			.flat()
+			.filter((v) => v.length > 0);
 	}
 }
 
@@ -74,11 +121,9 @@ class ModProcessor {
 		const mods = await ModScanner.getMods(modsPath);
 
 		const modrinthFetcher = new ModrinthFetcher();
-		const enrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
+		const modrinthEnrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
 
-		saveJsonToFile(MODS_FILENAME, enrichedMods);
-
-		const modrinthMods = enrichedMods.filter(m => {
+		const modrinthMods = modrinthEnrichedMods.filter(m => {
 			const hasProject = Boolean(m.modrinthProject);
 
 			if (!hasProject) {
@@ -93,15 +138,45 @@ class ModProcessor {
 			return hasProject;
 		});
 
-		console.log(`Fetched ${modrinthMods.length} mods of ${mods.length}`);
+		console.log(`Fetched modrinthMods: ${modrinthMods.length} mods of ${mods.length}`);
 
-		const gameVersionsCount = modrinthMods.reduce((acc: Record<string, number>, mod: EnrichedModData) => {
-			mod.gameVersions.forEach(version => {
-				acc[version] = (acc[version] || 0) + 1;
-			});
+		const curseforgeApiKey =
+			Buffer.from(process.env.CF_API_KEY_B64 || '', 'base64')
+				.toString('utf-8');
 
-			return acc;
-		}, {});
+		const curseforgeFetcher = new CurseforgeFetcher(curseforgeApiKey);
+
+		const modsToEnrich = modrinthMods.filter(m => Boolean(m.modrinthProject));
+		const curseforgeEnrichedMods =
+			await curseforgeFetcher.enrichWithCurseforgeData(modsToEnrich as ModData[]);
+
+		const curseforgeMods = curseforgeEnrichedMods.filter(m => {
+			const hasProject = Boolean(m.curseforgeProject);
+
+			if (!hasProject) {
+				const fabricMeta = m.metadata.fabric;
+
+				console.log(`Mod ${fabricMeta?.name} is not found in curseforge: ${JSON.stringify({
+					author: fabricMeta?.authors,
+					id: fabricMeta?.id,
+				})}`);
+			}
+
+			return hasProject;
+		});
+
+		console.log(`Fetched curseforgeMods: ${curseforgeMods.length} mods of ${mods.length}`);
+
+		const modsWithData = [...modrinthMods, ...curseforgeMods] as EnrichedModData[];
+
+		const gameVersionsCount =
+			modsWithData.reduce((acc: Record<string, number>, mod: EnrichedModData) => {
+				mod.gameVersions.forEach(version => {
+					acc[version] = (acc[version] || 0) + 1;
+				});
+
+				return acc;
+			}, {});
 
 		const latesVersionsCount = LATEST_VERSIONS.map(version => ({
 			version,
@@ -110,7 +185,11 @@ class ModProcessor {
 
 		console.log(`Latest game versions: ${JSON.stringify(latesVersionsCount)}`);
 
-		const urls = modrinthMods.map(m => m.modrinthProject).filter(Boolean).map((m) => ModrinthUtils.getModUrl(m!.slug));
+		const urls = modrinthMods
+			.map(m => m.modrinthProject)
+			.filter(Boolean)
+			.map((m) => ModrinthUtils.getModUrl(m!.slug));
+
 		saveToFile(MODS_URLS_FILENAME, urls.join('\n'));
 	}
 }

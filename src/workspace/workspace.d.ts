@@ -1,3 +1,4 @@
+import { CurseforgeProject } from "../curseforge/curseforge.d";
 import { ProjectHit, ProjectResponse } from "../modrinth/modrinth.d";
 
 export type Author = string | {
@@ -52,7 +53,7 @@ export interface ModData extends ModFileInfo {
 }
 
 export interface EnrichedModData extends ModData {
+	curseforgeProject: CurseforgeProject | null;
 	modrinthProject: ProjectResponse | ProjectHit | null;
-	latestVersion: string | null;
 	gameVersions: string[];
 }

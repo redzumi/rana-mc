@@ -39,7 +39,6 @@ export default defineConfig([
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
 
-      'max-len': ['error', { code: 100 }],
       'padding-line-between-statements': [
         'error',
         // { blankLine: 'never', prev: ['const', 'let', 'var'], next: '*' },
@@ -48,7 +47,7 @@ export default defineConfig([
       ],
       'space-infix-ops': ['error', { int32Hint: false }],
       'keyword-spacing': ['error', { before: true, after: true }],
-      'no-magic-numbers': ['warn', { ignore: [0, 1, -1] }],
+      'no-magic-numbers': ['off', { ignore: [0, 1, -1] }],
       'no-multi-spaces': 'error',
       'no-trailing-spaces': 'error',
     },
@@ -67,6 +66,7 @@ export default defineConfig([
   {
     rules: {
       ...prettierConfig.rules,
+			'max-len': ['error', { code: 100 }],
     },
   },
 ]);

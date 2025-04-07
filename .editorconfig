@@ -8,17 +8,15 @@ insert_final_newline = false
 trim_trailing_whitespace = true
 indent_style = tab
 indent_size = 2
-max_line_length = 120
+max_line_length = 80
 
 [*.js]
 indent_style = tab
 indent_size = 2
-max_line_length = 120
 
 [*.ts]
 indent_style = tab
 indent_size = 2
-max_line_length = 120
 
 [*.json]
 indent_style = tab

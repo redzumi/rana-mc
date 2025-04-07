@@ -15,13 +15,15 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "qs": "^6.14.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.8",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.24.0",
     "@types/node": "^22.14.0",
+    "@types/qs": "^6.9.18",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
     "auto-changelog": "^2.5.0",
