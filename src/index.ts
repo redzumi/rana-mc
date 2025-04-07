@@ -12,6 +12,8 @@ import { EnrichedModData, ModData } from './workspace/workspace.d';
 
 config();
 
+const DEBUG = false;
+
 class ModrinthFetcher {
 	private modrinth = new Modrinth();
 
@@ -129,10 +131,13 @@ class ModProcessor {
 			if (!hasProject) {
 				const fabricMeta = m.metadata.fabric;
 
-				console.log(`Mod ${fabricMeta?.name} is not found in modrinth: ${JSON.stringify({
-					author: fabricMeta?.authors,
-					id: fabricMeta?.id,
-				})}`);
+				if (DEBUG) {
+					console.log(
+						`Mod ${fabricMeta?.name} is not found in modrinth: ${JSON.stringify({
+							author: fabricMeta?.authors,
+							id: fabricMeta?.id,
+						})}`);
+				}
 			}
 
 			return hasProject;
@@ -146,7 +151,10 @@ class ModProcessor {
 
 		const curseforgeFetcher = new CurseforgeFetcher(curseforgeApiKey);
 
-		const modsToEnrich = modrinthMods.filter(m => Boolean(m.modrinthProject));
+		const modsToEnrich = modrinthEnrichedMods.filter((m) => !Boolean(m.modrinthProject));
+
+		console.log(`Mods to enrich: ${modsToEnrich.length} mods of ${mods.length}`);
+
 		const curseforgeEnrichedMods =
 			await curseforgeFetcher.enrichWithCurseforgeData(modsToEnrich as ModData[]);
 
@@ -156,10 +164,13 @@ class ModProcessor {
 			if (!hasProject) {
 				const fabricMeta = m.metadata.fabric;
 
-				console.log(`Mod ${fabricMeta?.name} is not found in curseforge: ${JSON.stringify({
-					author: fabricMeta?.authors,
-					id: fabricMeta?.id,
-				})}`);
+				if (DEBUG) {
+					console.log(
+						`Mod ${fabricMeta?.name} is not found in curseforge: ${JSON.stringify({
+							author: fabricMeta?.authors,
+							id: fabricMeta?.id,
+						})}`);
+				}
 			}
 
 			return hasProject;
@@ -185,10 +196,17 @@ class ModProcessor {
 
 		console.log(`Latest game versions: ${JSON.stringify(latesVersionsCount)}`);
 
-		const urls = modrinthMods
+		const modrinthUrls = modrinthMods
 			.map(m => m.modrinthProject)
 			.filter(Boolean)
 			.map((m) => ModrinthUtils.getModUrl(m!.slug));
+
+		const curseforgeUrls = curseforgeMods
+			.map(m => m.curseforgeProject)
+			.filter(Boolean)
+			.map((m) => m?.links.websiteUrl);
+
+		const urls = [...modrinthUrls, ...curseforgeUrls];
 
 		saveToFile(MODS_URLS_FILENAME, urls.join('\n'));
 	}

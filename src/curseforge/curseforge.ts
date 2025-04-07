@@ -2,7 +2,7 @@ import { API_HOST, ClassIds, GameIds, ModsSearchSortField, SortOrder } from './c
 import { SearchResponse } from './curseforge.d'
 import { CurseforgeSearch } from './search';
 
-const DEBUG = true;
+const DEBUG = false;
 
 export class Curseforge {
 	private apiKey: string;
