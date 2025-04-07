@@ -1,4 +1,7 @@
-import { CurseforgeFetcher, ModrinthFetcher } from './fetchers';
+import { TARGET_VERSION } from './constants';
+import { curseForge } from './curseforge';
+import { downloadFileToMods } from './download';
+import { CurseforgeFetcher } from './fetchers';
 import { Paths } from './paths';
 import { EnrichedModData, ModData, ModScanner } from './workspace';
 
@@ -9,42 +12,38 @@ export class ModProcessor {
 		const modsPath = Paths.getModsPath();
 		const mods = await ModScanner.getMods(modsPath);
 
-		const modrinthFetcher = new ModrinthFetcher();
-		const modrinthEnrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
+		const missedMods: EnrichedModData[] = [];
 
-		const modrinthMods = modrinthEnrichedMods.filter((m) => {
-			const hasProject = Boolean(m.modrinthProject);
+		// const modrinthFetcher = new ModrinthFetcher();
+		// const modrinthEnrichedMods = await modrinthFetcher.enrichWithModrinthData(mods);
 
-			if (!hasProject) {
-				const fabricMeta = m.metadata.fabric;
+		// const modrinthMods = modrinthEnrichedMods.filter((m) => {
+		// 	const hasProject = Boolean(m.modrinthProject);
 
-				if (DEBUG) {
-					console.log(
-						`Mod ${fabricMeta?.name} is not found in modrinth: ${JSON.stringify({
-							author: fabricMeta?.authors,
-							id: fabricMeta?.id,
-						})}`,
-					);
-				}
-			}
+		// 	if (!hasProject) {
+		// 		const fabricMeta = m.metadata.fabric;
 
-			return hasProject;
-		});
+		// 		if (DEBUG) {
+		// 			console.log(
+		// 				`Mod ${fabricMeta?.name} is not found in modrinth: ${JSON.stringify({
+		// 					author: fabricMeta?.authors,
+		// 					id: fabricMeta?.id,
+		// 				})}`,
+		// 			);
+		// 		}
+		// 	}
 
-		console.log(`Fetched modrinthMods: ${modrinthMods.length} mods of ${mods.length}`);
+		// 	return hasProject;
+		// });
 
-		const curseforgeApiKey = Buffer.from(
-			process.env.CF_API_KEY_B64 || '',
-			'base64',
-		).toString('utf-8');
+		// console.log(`Fetched modrinthMods: ${modrinthMods.length} mods of ${mods.length}`);
+		const curseforgeFetcher = new CurseforgeFetcher();
 
-		const curseforgeFetcher = new CurseforgeFetcher(curseforgeApiKey);
-
-		const modsToEnrich = modrinthEnrichedMods.filter((m) => !Boolean(m.modrinthProject));
-		console.log(`Mods to enrich: ${modsToEnrich.length} mods of ${mods.length}`);
+		// const modsToEnrich = modrinthEnrichedMods.filter((m) => !Boolean(m.modrinthProject));
+		// console.log(`Mods to enrich: ${modsToEnrich.length} mods of ${mods.length}`);
 
 		const curseforgeEnrichedMods = await curseforgeFetcher.enrichWithCurseforgeData(
-			modsToEnrich as ModData[],
+			mods as ModData[],
 		);
 
 		const curseforgeMods = curseforgeEnrichedMods.filter((m) => {
@@ -63,13 +62,51 @@ export class ModProcessor {
 				}
 			}
 
+			const isMissed =
+				!m.curseforgeProject || !m.gameVersions.includes(TARGET_VERSION);
+
+			if (isMissed) missedMods.push(m);
+
 			return hasProject;
 		});
 
+		const enrichedMods = [...curseforgeMods];
+
 		console.log(
-			`Fetched curseforgeMods: ${curseforgeMods.length} mods of ${mods.length}`,
+			`Fetched curseforgeMods: ${enrichedMods.length} mods of ${mods.length}`,
 		);
 
-		return [...modrinthMods, ...curseforgeMods] as EnrichedModData[];
+		return {
+			enrichedMods,
+			missedMods,
+		};
+	}
+
+	public static async saveMods(mods: EnrichedModData[]) {
+		const downloadUrls = await Promise.all(mods.map(async (m) => {
+			const targetFile = m.curseforgeProject?.latestFilesIndexes?.find(
+				(f) => f.gameVersion === TARGET_VERSION,
+			);
+
+			if (!targetFile) return;
+
+			const modId = m.curseforgeProject!.id;
+			const fileId = targetFile!.fileId;
+
+			const url = await curseForge.getDownloadUrl(modId, fileId);
+
+			if (!url) return;
+
+			return {
+				data: url.data,
+				fileName: targetFile!.filename,
+			}
+		}));
+
+		return await Promise.all(
+			downloadUrls
+				.filter(url => !!url)
+				.map((url) => downloadFileToMods(url.data, url?.fileName)),
+		);
 	}
 }

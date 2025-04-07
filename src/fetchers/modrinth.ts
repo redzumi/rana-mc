@@ -1,12 +1,10 @@
-import { Facets, Modrinth, ModrinthUtils, ProjectHit } from '../modrinth';
+import { Facets, modrinth, ModrinthUtils, ProjectHit } from '../modrinth';
 import { EnrichedModData, ModData, WorkspaceUtils } from '../workspace';
 
 export class ModrinthFetcher {
-	private modrinth = new Modrinth();
-
 	public async enrichWithModrinthData(
 		mods: ModData[],
-	): Promise<Omit<EnrichedModData, 'curseforgeProject'>[]> {
+	): Promise<EnrichedModData[]> {
 		return Promise.all(
 			mods.map(async (mod) => {
 				if (!mod.metadata || !mod.metadata.fabric) {
@@ -20,7 +18,7 @@ export class ModrinthFetcher {
 				const fabricMeta = mod.metadata.fabric;
 				const id = fabricMeta?.id;
 
-				const modProject = await this.modrinth.getProject(id);
+				const modProject = await modrinth.getProject(id);
 
 				if (modProject) {
 					return {
@@ -35,7 +33,7 @@ export class ModrinthFetcher {
 
 				const facets = ModrinthUtils.getSearchFacets([[Facets.equals('author', author)]]);
 
-				const modSearchHits = await this.modrinth.search(name, facets);
+				const modSearchHits = await modrinth.search(name, facets);
 
 				if (modSearchHits === null || modSearchHits.hits.length === 0) {
 					return {

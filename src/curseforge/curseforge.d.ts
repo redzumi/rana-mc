@@ -3,6 +3,10 @@ export interface SearchResponse {
 	pagination: Pagination;
 }
 
+export interface DownloadUrlResponse {
+	data: string;
+}
+
 export interface CurseforgeProject {
 	screenshots: Logo[];
 	id: number;

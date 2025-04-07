@@ -6,3 +6,7 @@ dist
 mods.json
 mods_*.json
 mods-urls.txt
+target-mods.json
+mods-download-urls.txt
+missed-mods.txt
+mods/*

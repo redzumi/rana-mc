@@ -47,6 +47,12 @@ export class CurseforgeSearch {
 		return this;
 	}
 
+	gameVersion(gameVersion: string) {
+		this.params['gameVersion'] = gameVersion;
+
+		return this;
+	}
+
 	get() {
 		return qs.stringify(this.params);
 	}

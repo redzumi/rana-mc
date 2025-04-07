@@ -55,7 +55,7 @@ export interface ModData extends ModFileInfo {
 }
 
 export interface EnrichedModData extends ModData {
-	curseforgeProject: CurseforgeProject | null;
-	modrinthProject: ProjectResponse | ProjectHit | null;
+	curseforgeProject?: CurseforgeProject | null;
+	modrinthProject?: ProjectResponse | ProjectHit | null;
 	gameVersions: string[];
 }

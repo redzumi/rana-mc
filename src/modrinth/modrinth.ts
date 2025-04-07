@@ -52,3 +52,5 @@ export class Modrinth {
 		return `${this.baseUrl}/search?query=${encodeURIComponent(query)}${facetsQuery}`;
 	}
 }
+
+export const modrinth = new Modrinth();

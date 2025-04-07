@@ -1,6 +1,11 @@
 import { config } from 'dotenv';
 
-import { LATEST_VERSIONS, MODS_FILENAME, MODS_URLS_FILENAME } from './constants';
+import {
+	LATEST_VERSIONS,
+	MODS_FILENAME,
+	MODS_URLS_FILENAME,
+	TARGET_VERSION
+} from './constants';
 import { saveToFile } from './helpers';
 import { ModrinthUtils } from './modrinth';
 import { ModProcessor } from './processor';
@@ -10,7 +15,7 @@ config();
 
 class RanaMC {
 	public async run(): Promise<void> {
-		const mods = await ModProcessor.getMods();
+		const { enrichedMods: mods, missedMods } = await ModProcessor.getMods();
 		saveToFile(MODS_FILENAME, JSON.stringify(mods));
 
 		const gameVersionsCount = mods.reduce(
@@ -44,6 +49,20 @@ class RanaMC {
 		const urls = [...modrinthUrls, ...curseforgeUrls];
 
 		saveToFile(MODS_URLS_FILENAME, urls.join('\n'));
+
+		const targetMods = mods.filter((m) => m.gameVersions.includes(TARGET_VERSION));
+
+		console.log(`Target mods: ${targetMods.length}`);
+		saveToFile('target-mods.json', JSON.stringify(targetMods));
+
+		console.log(`Missed mods: ${missedMods.length}`)
+		saveToFile('missed-mods.txt',
+			missedMods.map((m) => m.curseforgeProject?.links.websiteUrl).join('\n')
+		);
+
+		await ModProcessor.saveMods(targetMods);
+
+		console.log('Done');
 	}
 }
 
