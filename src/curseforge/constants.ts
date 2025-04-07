@@ -1,5 +1,5 @@
 export enum GameIds {
-	Minecraft = 432
+	Minecraft = 432,
 }
 
 export const API_HOST = 'https://api.curseforge.com';
@@ -7,12 +7,12 @@ export const API_HOST = 'https://api.curseforge.com';
 export const GAME_ID = GameIds.Minecraft;
 
 export enum ClassIds {
-	MC_Mods = 6
+	MC_Mods = 6,
 }
 
 export enum SortOrder {
 	Ascending = 'asc',
-	Descending = 'desc'
+	Descending = 'desc',
 }
 
 export enum ModLoaderType {
@@ -22,7 +22,7 @@ export enum ModLoaderType {
 	LiteLoader = 3,
 	Fabric = 4,
 	Quilt = 5,
-	NeoForge = 6
+	NeoForge = 6,
 }
 
 export enum ModsSearchSortField {
@@ -37,5 +37,5 @@ export enum ModsSearchSortField {
 	EarlyAccess = 9,
 	FeaturedReleased = 10,
 	ReleasedDate = 11,
-	Rating = 12
+	Rating = 12,
 }

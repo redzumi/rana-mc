@@ -1,10 +1,10 @@
 export interface ProjectResponse {
-	client_side: "required" | "optional" | "unsupported";
-	server_side: "required" | "optional" | "unsupported";
+	client_side: 'required' | 'optional' | 'unsupported';
+	server_side: 'required' | 'optional' | 'unsupported';
 	game_versions: string[];
 	id: string;
 	slug: string;
-	project_type: "mod" | "resource_pack" | "data_pack";
+	project_type: 'mod' | 'resource_pack' | 'data_pack';
 	team: string;
 	organization: string | null;
 	title: string;
@@ -15,15 +15,15 @@ export interface ProjectResponse {
 	updated: string;
 	approved: string;
 	queued: string;
-	status: "approved" | "pending" | "rejected";
-	requested_status: "approved" | "pending" | "rejected";
+	status: 'approved' | 'pending' | 'rejected';
+	requested_status: 'approved' | 'pending' | 'rejected';
 	moderator_message: string | null;
 	license: License;
 	downloads: number;
 	followers: number;
 	categories: string[];
 	additional_categories: string[];
-	loaders: ("fabric" | "forge" | "neoforge")[];
+	loaders: ('fabric' | 'forge' | 'neoforge')[];
 	versions: string[];
 	icon_url: string;
 	issues_url: string | null;
@@ -34,7 +34,7 @@ export interface ProjectResponse {
 	gallery: string[];
 	color: number;
 	thread_id: string;
-	monetization_status: "monetized" | "not_monetized";
+	monetization_status: 'monetized' | 'not_monetized';
 }
 
 interface ProjectHit {

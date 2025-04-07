@@ -1,5 +1,5 @@
 import { API_HOST, ClassIds, GameIds, ModsSearchSortField, SortOrder } from './constants';
-import { SearchResponse } from './curseforge.d'
+import { SearchResponse } from './curseforge.d';
 import { CurseforgeSearch } from './search';
 
 const DEBUG = false;
@@ -26,9 +26,9 @@ export class Curseforge {
 			const response = await fetch(url, {
 				headers: {
 					'x-api-key': this.apiKey,
-					'accept': 'application/json',
-					'content-type': 'application/json'
-				}
+					accept: 'application/json',
+					'content-type': 'application/json',
+				},
 			});
 
 			if (!response.ok) {
@@ -38,7 +38,7 @@ export class Curseforge {
 				return null;
 			}
 
-			return await response.json() as SearchResponse;
+			return (await response.json()) as SearchResponse;
 		} catch (err: unknown) {
 			console.error(err);
 

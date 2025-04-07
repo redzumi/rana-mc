@@ -1,6 +1,12 @@
-import qs from 'qs'
+import qs from 'qs';
 
-import { ClassIds, GameIds, ModLoaderType, ModsSearchSortField, SortOrder } from "./constants"
+import {
+	ClassIds,
+	GameIds,
+	ModLoaderType,
+	ModsSearchSortField,
+	SortOrder,
+} from './constants';
 
 export class CurseforgeSearch {
 	private params = {};

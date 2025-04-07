@@ -1,12 +1,14 @@
-import { CurseforgeProject } from "../curseforge/curseforge.d";
-import { ProjectHit, ProjectResponse } from "../modrinth/modrinth.d";
+import { CurseforgeProject } from '../curseforge/curseforge.d';
+import { ProjectHit, ProjectResponse } from '../modrinth/modrinth.d';
 
-export type Author = string | {
-	name: string;
-	contact: {
-		homepage: string;
-	};
-}
+export type Author =
+	| string
+	| {
+			name: string;
+			contact: {
+				homepage: string;
+			};
+	  };
 
 interface FabricModMetadata {
 	schemaVersion: number;
@@ -35,7 +37,7 @@ interface FabricModMetadata {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface QuitModMetadata { }
+interface QuitModMetadata {}
 
 export interface ModFileInfo {
 	path: string;

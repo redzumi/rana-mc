@@ -4,7 +4,12 @@ import * as path from 'path';
 
 import { FABRIC_META_FILENAME, MANIFEST_FILENAME, QUIT_META_FILENAME } from './constants';
 import { parseJson } from './helpers';
-import { FabricModMetadata, ModFileInfo, ModMetadata, QuitModMetadata } from './workspace.d';
+import {
+	FabricModMetadata,
+	ModFileInfo,
+	ModMetadata,
+	QuitModMetadata,
+} from './workspace.d';
 
 export class Workspace {
 	static async readModsFiles(folderPath: string): Promise<ModFileInfo[]> {
@@ -17,7 +22,7 @@ export class Workspace {
 					const stats = await fs.promises.stat(filePath);
 
 					return stats.isFile() ? { path: filePath, filename: file } : null;
-				})
+				}),
 			);
 
 			return fileStats.filter(Boolean) as ModFileInfo[];

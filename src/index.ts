@@ -13,29 +13,31 @@ class RanaMC {
 		const mods = await ModProcessor.getMods();
 		saveToFile(MODS_FILENAME, JSON.stringify(mods));
 
-		const gameVersionsCount =
-			mods.reduce((acc: Record<string, number>, mod: EnrichedModData) => {
-				mod.gameVersions.forEach(version => {
+		const gameVersionsCount = mods.reduce(
+			(acc: Record<string, number>, mod: EnrichedModData) => {
+				mod.gameVersions.forEach((version) => {
 					acc[version] = (acc[version] || 0) + 1;
 				});
 
 				return acc;
-			}, {});
+			},
+			{},
+		);
 
-		const latesVersionsCount = LATEST_VERSIONS.map(version => ({
+		const latesVersionsCount = LATEST_VERSIONS.map((version) => ({
 			version,
-			count: gameVersionsCount[version] || 0
+			count: gameVersionsCount[version] || 0,
 		}));
 
 		console.log(`Latest game versions: ${JSON.stringify(latesVersionsCount)}`);
 
 		const modrinthUrls = mods
-			.map(m => m.modrinthProject)
+			.map((m) => m.modrinthProject)
 			.filter(Boolean)
 			.map((m) => ModrinthUtils.getModUrl(m!.slug));
 
 		const curseforgeUrls = mods
-			.map(m => m.curseforgeProject)
+			.map((m) => m.curseforgeProject)
 			.filter(Boolean)
 			.map((m) => m?.links.websiteUrl);
 
