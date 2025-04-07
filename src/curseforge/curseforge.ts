@@ -1,4 +1,5 @@
-import { API_HOST } from './constants';
+import { EnrichedModData } from '../workspace';
+import { API_HOST, ModLoaderType } from './constants';
 import { DownloadUrlResponse, SearchResponse } from './curseforge.d';
 
 const DEBUG = false;
@@ -35,6 +36,23 @@ export class Curseforge {
 
 			return null;
 		}
+	}
+
+	async getInstallFile(
+		mod: EnrichedModData,
+		modLoader: ModLoaderType,
+		gameVersion: string,
+	) {
+		const targetFile = mod.curseforgeProject?.latestFilesIndexes?.find(
+			(f) => f.gameVersion === gameVersion && f.modLoader === modLoader,
+		);
+
+		if (!targetFile) return;
+
+		return {
+			modId: mod.curseforgeProject!.id,
+			...targetFile
+		};
 	}
 
 	async getDownloadUrl(modId: string | number, fileId: string | number) {

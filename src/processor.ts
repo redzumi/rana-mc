@@ -1,5 +1,5 @@
 import { TARGET_VERSION } from './constants';
-import { curseForge } from './curseforge';
+import { curseForge, ModLoaderType } from './curseforge';
 import { downloadFileToMods } from './download';
 import { CurseforgeFetcher } from './fetchers';
 import { Paths } from './paths';
@@ -83,25 +83,31 @@ export class ModProcessor {
 	}
 
 	public static async saveMods(mods: EnrichedModData[]) {
-		const downloadUrls = await Promise.all(mods.map(async (m) => {
-			const targetFile = m.curseforgeProject?.latestFilesIndexes?.find(
-				(f) => f.gameVersion === TARGET_VERSION,
-			);
+		const installFiles = await Promise.all(
+			mods.map(async (mod) => await curseForge.getInstallFile(
+				mod,
+				ModLoaderType.Fabric,
+				TARGET_VERSION,
+			)),
+		);
 
-			if (!targetFile) return;
+		const downloadUrls = await Promise.all(
+			installFiles
+				.filter((file) => !!file)
+				.map(async (file) => {
+					const url = await curseForge.getDownloadUrl(
+						file.modId,
+						file.fileId,
+					);
 
-			const modId = m.curseforgeProject!.id;
-			const fileId = targetFile!.fileId;
+					if (!url) return null;
 
-			const url = await curseForge.getDownloadUrl(modId, fileId);
-
-			if (!url) return;
-
-			return {
-				data: url.data,
-				fileName: targetFile!.filename,
-			}
-		}));
+					return {
+						data: url.data,
+						fileName: file.filename,
+					};
+				}),
+		);
 
 		return await Promise.all(
 			downloadUrls
