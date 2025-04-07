@@ -7,7 +7,6 @@ import {
 	LatestFilesIndex,
 	ModLoaderType,
 	ModsSearchSortField,
-	SortOrder
 } from '../curseforge';
 import { EnrichedModData, ModData } from '../workspace';
 
@@ -31,8 +30,7 @@ export class CurseforgeFetcher {
 				const params = new CurseforgeSearch()
 					.gameId(GameIds.Minecraft)
 					.classId(ClassIds.MC_Mods)
-					.sortField(ModsSearchSortField.TotalDownloads)
-					.sortOrder(SortOrder.Descending)
+					.sortField(ModsSearchSortField.RelevanceOrFeatured)
 					.gameVersion(TARGET_VERSION)
 					.modLoaderType(ModLoaderType.Fabric)
 					.searchFilter(name)

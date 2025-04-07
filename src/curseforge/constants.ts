@@ -26,7 +26,7 @@ export enum ModLoaderType {
 }
 
 export enum ModsSearchSortField {
-	Featured = 1,
+	RelevanceOrFeatured = 1,
 	Popularity = 2,
 	LastUpdated = 3,
 	Name = 4,

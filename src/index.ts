@@ -57,7 +57,7 @@ class RanaMC {
 
 		console.log(`Missed mods: ${missedMods.length}`)
 		saveToFile('missed-mods.txt',
-			missedMods.map((m) => m.curseforgeProject?.links.websiteUrl).join('\n')
+			missedMods.map((m) => m.metadata.fabric?.name).join('\n')
 		);
 
 		await ModProcessor.saveMods(targetMods);
